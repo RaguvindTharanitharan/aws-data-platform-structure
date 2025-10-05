@@ -1,0 +1,8 @@
+services:
+  demo-core:
+    path: ./demo_core
+  demo-micro-service:
+    path: ./demo-micro-service
+    dependsOn: demo-core
+
+

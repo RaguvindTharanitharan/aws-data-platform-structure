@@ -1,0 +1,38 @@
+{
+  "name": "aws-data-platform-structure",
+  "version": "1.0.0",
+  "description": "AWS Data Platform with microservices architecture using Serverless Framework Compose",
+  "main": "serverless-compose.yml",
+  "scripts": {
+    "deploy": "serverless deploy",
+    "deploy:dev": "serverless deploy --stage dev",
+    "deploy:staging": "serverless deploy --stage staging",
+    "deploy:prod": "serverless deploy --stage prod",
+    "remove": "serverless remove",
+    "remove:dev": "serverless remove --stage dev",
+    "remove:staging": "serverless remove --stage staging",
+    "remove:prod": "serverless remove --stage prod",
+    "logs": "serverless logs",
+    "info": "serverless info"
+  },
+  "keywords": [
+    "aws",
+    "serverless",
+    "microservices",
+    "data-platform",
+    "lambda",
+    "python"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "path": "^0.12.7",
+    "serverless": "^3.34.0",
+    "serverless-compose": "^2.0.0",
+    "serverless-scriptable-plugin": "^1.3.1"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}
