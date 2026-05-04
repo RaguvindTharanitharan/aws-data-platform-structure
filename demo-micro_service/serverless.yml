@@ -1,0 +1,71 @@
+service: demo-micro-service
+frameworkVersion: '3'
+
+package:
+  patterns:
+    - "!*.sh"
+    - "!.venv/**"
+    - "!.eslint*"
+    - "!builds/**"
+    - "!node_modules/**"
+    - "!package-lock.json"
+    - "!package.json"
+    - "!requirements.txt"
+    - "!config/**"
+    - "!test/**"
+    - "!build.js"
+    - "!*.log"
+    - "!tests/**"
+    - "!README.md"
+    - "!serverless/**"
+    - "!glue_jobs/**"  # Glue scripts are uploaded separately to S3
+
+provider:
+  name: aws
+  runtime: python3.9
+  deploymentBucket: ragu-blog-deployment
+  environment:
+    service: demo-micro-service
+    stage: ${self:provider.stage}
+  profile: ${self:provider.stage}
+  region: us-east-1
+  role: arn:aws:iam::374053237961:role/Service-Apex
+  stage: ${opt:stage, 'dev'}
+
+custom:
+  glueRole: arn:aws:iam::374053237961:role/Service-Apex
+  sharedLibsBucket: ragu-blog-deployment
+  glueScriptsBucket: ragu-blog-deployment
+
+functions:
+  hello-world:
+    handler: lambdas/hello_world_lambda.handler
+    description: Demo Lambda consuming the shared service_core logger via Lambda Layer.
+    events:
+      - httpApi:
+          path: /hello
+          method: GET
+    memorySize: 128
+    timeout: 15
+    layers:
+      - ${cf:service-core-${self:provider.stage}.ServiceCoreLayersExport}
+
+resources:
+  Resources:
+    HelloWorldGlueJob:
+      Type: AWS::Glue::Job
+      Properties:
+        Name: hello-world-data-extractor
+        Role: ${self:custom.glueRole}
+        Command:
+          Name: glueetl
+          PythonVersion: '3'
+          ScriptLocation: s3://${self:custom.glueScriptsBucket}/glueJobs/scripts/hello_world_data_extractor.py
+        DefaultArguments:
+          "--extra-py-files": s3://${self:custom.sharedLibsBucket}/glueJobs/glue-libraries/service_core_1.0.0.zip
+          "--service-name": hello-world
+          "--enable-metrics": "true"
+          "--enable-continuous-cloudwatch-log": "true"
+        GlueVersion: '4.0'
+        WorkerType: G.1X
+        NumberOfWorkers: 2

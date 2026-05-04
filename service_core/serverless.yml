@@ -1,0 +1,65 @@
+service: service-core
+frameworkVersion: '3'
+
+package:
+  patterns:
+    - "!*.sh"
+    - "!.venv/**"
+    - "!.eslint*"
+    - "!builds/**"
+    - "!node_modules/**"
+    - "!package-lock.json"
+    - "!package.json"
+    - "!requirements.txt"
+    - "!config/**"
+    - "!test/**"
+    - "!build.js"
+    - "!*.log"
+    - "!tests/**"
+    - "!README.md"
+    - "!serverless/**"
+
+provider:
+  name: aws
+  runtime: python3.9
+  deploymentBucket: ragu-blog-deployment
+  environment: # Service-wide environment variables
+    service: service-core
+    stage: ${self:provider.stage}
+  profile: ${self:provider.stage}
+  region: us-east-1
+  role: arn:aws:iam::374053237961:role/Service-Apex
+  stage: ${opt:stage, 'dev'}
+
+layers:
+  service_core_layers:
+    path: layers
+    description: Shared core utilities (logging, repositories, config) for Lambda functions.
+    compatibleRuntimes:
+      - python3.9
+
+resources:
+  Outputs:
+    ServiceCoreLayersExport:
+      Value:
+        Ref: ServiceUnderscorecoreUnderscorelayersLambdaLayer
+      Export:
+        Name: ServiceUnderscorecoreUnderscorelayersLambdaLayer
+      Description: Layer ARN for shared service_core utilities.
+
+plugins:
+  - serverless-scriptable-plugin
+
+custom:
+  scriptable:
+    hooks:
+      # Build the Lambda Layer + Glue library zip from service_core/ before packaging.
+      before:package:cleanup: >-
+        node ../build-scripts/initialize.js layer ../service_core/layers/python/service_core/
+        && node ../build-scripts/initialize.js glue-library ../service_core/glue/service_core/ 1.0.0
+      # Upload the Glue zip to S3 and clean up build artifacts after deploy.
+      after:deploy:finalize: >-
+        aws s3 cp service_core_1.0.0.zip s3://ragu-blog-deployment/glueJobs/glue-libraries/ --profile ${self:provider.stage}
+        && node ../build-scripts/initialize.js remove-layer ../service_core/layers/
+        && node ../build-scripts/initialize.js remove-layer ../service_core/glue/
+        && node ../build-scripts/initialize.js remove-file service_core_1.0.0.zip

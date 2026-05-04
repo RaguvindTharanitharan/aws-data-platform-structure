@@ -1,13 +1,13 @@
-// Command (Create layer) - node ..\build-scripts\initialize.js layer ../demo_core/layers/python/demo_core/
-// Command (Remove layer) - node ..\build-scripts\initialize.js remove-layer ../demo_core/layers
-// Command (Create Glue Library) - node ..\build-scripts\initialize.js glue-library ../demo_core/glue/demo_core/ 1.0 demo-serverless /glueJobs/glue-libraries/ prod
+// Command (Create layer) - node ..\build-scripts\initialize.js layer ../service_core/layers/python/service_core/
+// Command (Remove layer) - node ..\build-scripts\initialize.js remove-layer ../service_core/layers
+// Command (Create Glue Library) - node ..\build-scripts\initialize.js glue-library ../service_core/glue/service_core/ 1.0 demo-serverless /glueJobs/glue-libraries/ prod
 
 const path = require('path');
 const FileHelper = require('./file-helper.js');
 
 const codeDirectories = [
-  path.join(__dirname, "../demo_core/repositories/"),
-  path.join(__dirname, "../demo_core/utils/"),
+  path.join(__dirname, "../service_core/repositories/"),
+  path.join(__dirname, "../service_core/utils/"),
 ];
 
 const skipLayerFiles = [
@@ -117,7 +117,7 @@ async function runInitialize() {
     await constructLayer(skipLayerFiles);
   } else if (mode === 'glue-library') {
     await constructLayer(skipGlueFiles);
-    zipFileLocation = `demo_core_${version}.zip`
+    zipFileLocation = `service_core_${version}.zip`
     await FileHelper.zipDirectory(path.dirname(destinationDirectory), zipFileLocation);
     console.log('Directory zipped successfully!');
   } else if (mode === 'remove-layer') {

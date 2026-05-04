@@ -1,8 +1,6 @@
 services:
-  demo-core:
-    path: ./demo_core
+  service-core:
+    path: ./service_core
   demo-micro-service:
-    path: ./demo-micro-service
-    dependsOn: demo-core
-
-
+    path: ./demo-micro_service
+    dependsOn: service-core
